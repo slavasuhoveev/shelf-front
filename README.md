@@ -1,38 +1,68 @@
 # Shelf Frontend
 
-Frontend client for the **Shelf App** — a vinyl collection manager.  
-This app allows users to authenticate, browse their albums, and visualize storage shelves in a simple 2D grid layout.
+Frontend client for the **Shelf App** — a vinyl collection manager.
+
+This application handles user authentication and serves as the main UI layer
+for interacting with Shelf backend services.
 
 ---
 
-## 📌 Features (MVP)
-- User authentication (integrates with Shelf Auth service).
-- CRUD UI for shelves, storage items, and slots.
-- CRUD UI for albums, releases, mediums, and user albums.
-- 2D visualization of shelves using `react-konva`.
-- Global state management with TanStack Query + Zustand.
-- Form handling with React Hook Form + Zod validation.
+## 📌 Current Scope (MVP Foundation)
+
+At this stage the frontend includes:
+
+- Authentication integration with **Shelf Auth Service**
+- Access token stored in memory (not localStorage)
+- Refresh token handled via httpOnly cookie
+- Automatic refresh on 401 responses
+- Guarded routes for authenticated areas (`/app`)
+- TanStack Query global configuration
+- Zustand-based auth state machine
+- Docker support for local development
+
+---
+
+## 🔐 Authentication Flow
+
+The frontend integrates with the Shelf Auth Service using the following model:
+
+1. **Login**
+   - `POST /login`
+   - Returns `access_token`
+   - Sets `refresh_token` as httpOnly cookie
+   - Access token stored in memory
+
+2. **Authenticated Requests**
+   - Access token sent via `Authorization: Bearer`
+   - Shelf API validates JWT via JWKS
+
+3. **Token Expiration**
+   - If access token expires → 401
+   - Frontend automatically calls `POST /refresh`
+   - New access token stored in memory
+   - Original request retried
+
+4. **Logout**
+   - `POST /logout`
+   - Clears refresh cookie
+   - Clears access token in memory
+   - Redirects to `/login`
+
+5. **Route Guard**
+   - `/app` is protected
+   - Unauthenticated users redirected to `/login`
 
 ---
 
 ## 🛠 Tech Stack
+
 - [Next.js](https://nextjs.org/) (App Router, React 18, TypeScript)
-- [TailwindCSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) for UI
-- [TanStack Query](https://tanstack.com/query/latest) for server state
-- [Zustand](https://github.com/pmndrs/zustand) for local state
-- [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) for validation
-- [react-konva](https://konvajs.org/docs/react/index.html) for shelf visualization
-- [next-intl](https://next-intl-docs.vercel.app/) for i18n (planned)
+- [TailwindCSS](https://tailwindcss.com/)
+- [TanStack Query](https://tanstack.com/query/latest)
+- [Zustand](https://github.com/pmndrs/zustand)
+
+> UI component system and CI tooling will be introduced in future tasks.
 
 ---
 
-## ⚙️ Getting Started
-
-### Prerequisites
-- Node.js >= 20
-- npm (or pnpm/yarn)
-
-### Install
-```bash
-cd frontend
-npm install
+## 📂 Project Structure

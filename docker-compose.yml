@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  frontend:
+    image: "${IMAGE}"
+    container_name: "${PROJECT_NAME}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - shelf-net
+
+networks:
+  shelf-net:
+    driver: bridge
