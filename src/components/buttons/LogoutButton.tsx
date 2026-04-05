@@ -1,25 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/api/authClient";
-import { useAuthUIStore } from "@/store/authUIStore";
+import { useLogout } from "@/features/auth/hooks/useLogout";
 
 export function LogoutButton() {
-  const router = useRouter();
-  const setGuest = useAuthUIStore((s) => s.setGuest);
-
-  const handleLogout = async () => {
-    try {
-      await authClient.logout();
-    } finally {
-      setGuest();
-      router.replace("/login");
-    }
-  };
+  const logoutMutation = useLogout();
 
   return (
     <button
-      onClick={handleLogout}
+      onClick={() => logoutMutation.mutate()}
       className="text-sm text-zinc-600 hover:text-black"
     >
       Logout
