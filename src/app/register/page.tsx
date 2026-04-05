@@ -1,29 +1,40 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { REGISTER_ERROR_MESSAGES } from "@/lib/errors/auth";
-import { useRegister } from "@/features/auth/hooks";
-import { useAuthUIStore } from "@/store/authUIStore";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { useRegister } from "@/features/auth/hooks/useRegister";
+import { REGISTER_ERROR_MESSAGES } from "@/lib/errors/auth";
+
+import {
+  RegisterFormSchema,
+  type RegisterFormInput,
+} from "@/features/auth/forms/register.schema";
 
 export default function RegisterPage() {
   const router = useRouter();
   const registerMutation = useRegister();
 
-  const setAuthenticated = useAuthUIStore((s) => s.setAuthenticated);
+  const form = useForm<RegisterFormInput>({
+    resolver: zodResolver(RegisterFormSchema),
+  });
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = (data: RegisterFormInput) => {
     registerMutation.mutate(
-      { email, password },
+      {
+        email: data.email,
+        password: data.password,
+      },
       {
         onSuccess: () => {
-          setAuthenticated();
           router.replace("/login");
         },
       }
@@ -34,36 +45,61 @@ export default function RegisterPage() {
     <div className="mx-auto max-w-sm py-10">
       <h1 className="mb-6 text-xl font-semibold">Register</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            registerMutation.reset();
-          }}
-          className="w-full border px-3 py-2"
-        />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* EMAIL */}
+        <div>
+          <input
+            type="email"
+            placeholder="Email"
+            {...register("email")}
+            className="w-full border px-3 py-2"
+          />
+          {errors.email && (
+            <p className="text-sm text-red-600">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            registerMutation.reset();
-          }}
-          className="w-full border px-3 py-2"
-        />
+        {/* PASSWORD */}
+        <div>
+          <input
+            type="password"
+            placeholder="Password"
+            {...register("password")}
+            className="w-full border px-3 py-2"
+          />
+          {errors.password && (
+            <p className="text-sm text-red-600">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
 
+        {/* CONFIRM PASSWORD */}
+        <div>
+          <input
+            type="password"
+            placeholder="Confirm password"
+            {...register("confirmPassword")}
+            className="w-full border px-3 py-2"
+          />
+          {errors.confirmPassword && (
+            <p className="text-sm text-red-600">
+              {errors.confirmPassword.message}
+            </p>
+          )}
+        </div>
+
+        {/* SERVER ERROR */}
         {registerMutation.isError && (
           <p className="text-sm text-red-600">
-              {REGISTER_ERROR_MESSAGES[registerMutation.error.code] ??
-               "Registration failed"}
+            {REGISTER_ERROR_MESSAGES[registerMutation.error.code!] ??
+              registerMutation.error.message}
           </p>
         )}
 
+        {/* BUTTON */}
         <button
           type="submit"
           disabled={registerMutation.isPending}

@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useMe } from "@/features/auth/hooks";
+import { useMe } from "@/features/auth/hooks/useMe";
 import { useAuthUIStore } from "@/store/authUIStore";
-import { refreshAccessToken } from "@/lib/api/fetcher";
+import { refreshAccessToken } from "@/lib/api/auth";
 import { LogoutButton } from "@/components/buttons/LogoutButton";
 
 export default function AppLayout({
@@ -18,8 +18,7 @@ export default function AppLayout({
   const setAuthenticated = useAuthUIStore((s) => s.setAuthenticated);
   const setGuest = useAuthUIStore((s) => s.setGuest);
 
-  /**
-   * 🔹 STEP 1 — Bootstrap only once
+  /** Bootstrap only once
    * If page reloaded and we don't know auth state yet
    */
   useEffect(() => {
@@ -38,17 +37,13 @@ export default function AppLayout({
     }
   }, [status, setAuthenticated, setGuest]);
 
-  /**
-   * 🔹 STEP 2 — Call /me only if authenticated
-   */
+  /** Call /me only if authenticated */
   const meQuery = useMe({
     enabled: status === "authenticated",
     retry: false,
   });
 
-  /**
-   * 🔹 STEP 3 — If /me fails → user is invalid → logout
-   */
+  /** If /me fails → user is invalid → logout */
   useEffect(() => {
     if (meQuery.isError) {
       setGuest();
@@ -56,18 +51,14 @@ export default function AppLayout({
     }
   }, [meQuery.isError, setGuest, router]);
 
-  /**
-   * 🔹 STEP 4 — If guest → redirect
-   */
+  /** If guest → redirect */
   useEffect(() => {
     if (status === "guest") {
       router.replace("/login");
     }
   }, [status, router]);
 
-  /**
-   * 🔹 UI states
-   */
+  /** UI states */
   if (status === "checking") {
     return (
       <div className="flex h-screen items-center justify-center">

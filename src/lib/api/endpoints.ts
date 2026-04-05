@@ -1,0 +1,16 @@
+import { env } from "@/lib/env";
+
+export const endpoints = {
+  auth: {
+    register: `${env.AUTH_API_URL}/register`,
+    login: `${env.AUTH_API_URL}/login`,
+    refresh: `${env.AUTH_API_URL}/refresh`,
+    logout: `${env.AUTH_API_URL}/logout`,
+    me: `${env.AUTH_API_URL}/me`,
+  },
+
+  albumWorks: {
+    list: `${env.SHELF_API_URL}/album-works`,
+    detail: (id: string) => `${env.SHELF_API_URL}/album-works/${id}`,
+  }
+}
