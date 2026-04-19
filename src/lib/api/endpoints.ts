@@ -9,8 +9,10 @@ export const endpoints = {
     me: `${env.AUTH_API_URL}/me`,
   },
 
-  albumWorks: {
-    list: `${env.SHELF_API_URL}/album-works`,
-    detail: (id: string) => `${env.SHELF_API_URL}/album-works/${id}`,
+  shelf: {
+    albumWorks: {
+      list: `${env.SHELF_API_URL}/api/album-works`,
+      detail: (id: string) => `${env.SHELF_API_URL}/api/album-works/${id}`,
+    },
   }
 }
