@@ -4,21 +4,104 @@ services:
   frontend:
     image: "${IMAGE}"
     container_name: "${PROJECT_NAME}"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    build:
-      context: .
-      dockerfile: Dockerfile
+
+    build: .
+
     ports:
       - "3000:3000"
+
     env_file:
       - .env.local
+
+    environment:
+      NEXT_PUBLIC_AUTH_API_URL: http://localhost:8081
+      NEXT_PUBLIC_SHELF_API_URL: http://localhost:8082
+
     volumes:
       - .:/app
       - /app/node_modules
+
+    depends_on:
+      - auth
+      - shelf-api
+
+    networks:
+      - shelf-net
+
+  auth:
+    image: ghcr.io/YOUR_GITHUB/shelf-auth:latest
+    container_name: shelf-auth
+
+    ports:
+      - "8081:8080"
+
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@auth-db:5432/auth
+
+    depends_on:
+      - auth-db
+
+    networks:
+      - shelf-net
+
+  shelf-api:
+    image: ghcr.io/YOUR_GITHUB/shelf-api:latest
+    container_name: shelf-api
+
+    ports:
+      - "8082:8000"
+
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@shelf-db:5432/shelf
+      AUTH_JWKS_URL: http://auth:8080/.well-known/jwks.json
+
+    depends_on:
+      - shelf-db
+      - auth
+
+    networks:
+      - shelf-net
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+
+    networks:
+      - shelf-net
+
+  shelf-db:
+    image: postgres:16-alpine
+    container_name: shelf-db
+
+    environment:
+      POSTGRES_DB: shelf
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - shelf-db-data:/var/lib/postgresql/data
+
     networks:
       - shelf-net
 
 networks:
   shelf-net:
     driver: bridge
+
+volumes:
+  auth-db-data:
+  shelf-db-data:
