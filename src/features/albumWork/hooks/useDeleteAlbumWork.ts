@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { deleteAlbumWork } from "../api/deleteAlbumWork"
+import type { AlbumWork } from "../schemas/albumWork.schema"
 
 export function useDeleteAlbumWork() {
   const queryClient = useQueryClient()
@@ -12,8 +13,8 @@ export function useDeleteAlbumWork() {
 
       const previous = queryClient.getQueryData(["albumWorks"])
 
-      queryClient.setQueryData(["albumWorks"], (old: any) =>
-        old?.filter((album: any) => album.id !== id)
+      queryClient.setQueryData(["albumWorks"], (old: AlbumWork[] | undefined) =>
+        old?.filter((album) => album.id !== id)
       )
 
       return { previous }

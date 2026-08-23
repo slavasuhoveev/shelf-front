@@ -1,4 +1,6 @@
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
+
+const env = getEnv();
 
 export const endpoints = {
   auth: {

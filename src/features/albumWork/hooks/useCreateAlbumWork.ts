@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { createAlbumWork } from "../api/createAlbumWork"
+import type { AlbumWork } from "../schemas/albumWork.schema"
 
 export function useCreateAlbumWork() {
   const queryClient = useQueryClient()
@@ -17,7 +18,7 @@ export function useCreateAlbumWork() {
         ...newAlbum,
       }
 
-      queryClient.setQueryData(["albumWorks"], (old: any) => [
+      queryClient.setQueryData(["albumWorks"], (old: AlbumWork[] | undefined) => [
         ...(old || []),
         optimisticAlbum,
       ])

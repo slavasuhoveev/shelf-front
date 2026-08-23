@@ -7,75 +7,150 @@
 # Project configuration
 # =========================
 
-PROJECT_NAME         = shelf-front
-IMAGE               ?= $(PROJECT_NAME):develop
-COMPOSE              = docker compose
+REGISTRY ?= ghcr.io
+PROJECT_NAME ?= shelf-front
+TEST_SERVICE ?= shelf-front-test
 
-COMMON_COMPOSE_FILE=../infra/local/docker-compose.local.yml
-COMMON_COMPOSE=$(COMPOSE) -f $(COMMON_COMPOSE_FILE)
+IMAGE_NAME ?= $(REGISTRY)/slavasuhoveev/$(PROJECT_NAME)
+AUTH_IMAGE ?= $(REGISTRY)/slavasuhoveev/shelf-auth:latest
+SHELF_API_IMAGE ?= $(REGISTRY)/slavasuhoveev/shelf-api:latest
+
+# Development keys
+KEYS_DIR ?= ./devkeys
+SIGNING_KEY_KID ?= k1-2025-08-30
+
+# Default local tag
+TAG ?= develop
+
+ifdef CI
+TAG = latest
+endif
+
+IMAGE = $(IMAGE_NAME):$(TAG)
+
+COMPOSE ?= docker compose
+
 
 # =========================
 # Docker lifecycle
 # =========================
 
+.PHONY: generate-dev-key
+generate-dev-key:
+	@mkdir -p $(KEYS_DIR)
+
+	@if [ ! -f "$(KEYS_DIR)/$(SIGNING_KEY_KID).pem" ]; then \
+		echo "Generating development RSA key..."; \
+		openssl genpkey \
+			-algorithm RSA \
+			-pkeyopt rsa_keygen_bits:2048 \
+			-out "$(KEYS_DIR)/$(SIGNING_KEY_KID).pem"; \
+	fi
+
 .PHONY: up
-up: ## Build and start all services
-	$(COMPOSE) up --build
+up: generate-dev-key docker-build ## Build and start services
+	@$(COMPOSE) up
 
 .PHONY: up-d
-up-d: ## Start all services in detached mode
-	$(COMPOSE) up -d --build
+up-d: generate-dev-key docker-build ## Start services in detached mode
+	@$(COMPOSE) up -d
 
 .PHONY: down
-down: ## Stop and remove containers
-	$(COMPOSE) down
+down: ## Stop services
+	@$(COMPOSE) down
 
 .PHONY: down-v
-down-v: ## Stop and remove containers + volumes
-	$(COMPOSE) down -v
+down-v: ## Stop services and remove volumes
+	@$(COMPOSE) down -v
 
 .PHONY: restart
-restart: down up ## Restart all services
+restart: ## Restart services
+	@$(COMPOSE) restart
+
 
 # =========================
 # Logs & debug
 # =========================
 
 .PHONY: logs
-logs: ## Show logs for all services
-	$(COMPOSE) logs -f
+logs: ## Show all logs
+	@$(COMPOSE) logs -f
 
 .PHONY: logs-front
 logs-front: ## Show frontend logs
-	$(COMPOSE) logs -f frontend
+	@$(COMPOSE) logs -f $(PROJECT_NAME)
 
-.PHONY: logs-auth
-logs-auth: ## Show auth service logs
-	$(COMPOSE) logs -f auth
+.PHONY: shell
+shell: ## Open frontend shell
+	@$(COMPOSE) exec $(PROJECT_NAME) sh
+
+.PHONY: test-shell
+test-shell: test-build ## Open test container shell
+	@$(COMPOSE) run --rm $(TEST_SERVICE) sh
+
 
 # =========================
-# Frontend helpers
+# Frontend quality
 # =========================
 
-.PHONY: install
-install: ## Install frontend dependencies
-	$(COMPOSE) exec frontend pnpm install
+.PHONY: test-build
+test-build: ## Build test/lint image
+	@$(COMPOSE) build $(TEST_SERVICE)
 
-.PHONY: shell-front
-shell-front: ## Open shell inside frontend container
-	$(COMPOSE) exec frontend sh
+.PHONY: lint
+lint: test-build ## Run ESLint
+	@$(COMPOSE) run --rm $(TEST_SERVICE) pnpm lint
 
-.PHONY: dev
-dev: up ## Alias for up (dev mode)
+.PHONY: test
+test: test-build ## Run tests
+	@$(COMPOSE) run --rm $(TEST_SERVICE) pnpm test
+
+.PHONY: test-watch
+test-watch: test-build ## Run tests in watch mode
+	@$(COMPOSE) run --rm $(TEST_SERVICE) pnpm test:watch
+
+.PHONY: typecheck
+typecheck: test-build ## Run TypeScript type check
+	@$(COMPOSE) run --rm $(TEST_SERVICE) pnpm exec tsc --noEmit
+
+.PHONY: check
+check: lint test typecheck ## Run all quality checks
+
+
+# =========================
+# Application build
+# =========================
+
+.PHONY: build
+build: docker-build ## Build Next.js production image
+
+
+# =========================
+# Docker image
+# =========================
+
+.PHONY: docker-build
+docker-build: ## Build production Docker image
+	@$(COMPOSE) build $(PROJECT_NAME)
+
+.PHONY: docker-build-no-cache
+docker-build-no-cache: ## Build production Docker image without cache
+	@$(COMPOSE) build --no-cache $(PROJECT_NAME)
+
+.PHONY: docker-push
+docker-push: ## Push Docker image
+	@docker push $(IMAGE)
+
 
 # =========================
 # Cleanup
 # =========================
 
 .PHONY: clean
-clean: ## Remove containers, volumes and build cache
-	$(COMPOSE) down -v
-	docker system prune -f
+clean: ## Remove containers and cache
+	@$(COMPOSE) down -v
+	@docker system prune -f
+
 
 # =========================
 # Help
