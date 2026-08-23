@@ -26,8 +26,10 @@ out
 .idea
 
 # Docker
-Dockerfile
 docker-compose.yml
 
 # Docs
 README.md
+
+# Coverage
+coverage
