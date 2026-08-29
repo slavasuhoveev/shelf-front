@@ -22,10 +22,6 @@ SIGNING_KEY_KID ?= k1-2025-08-30
 # Default local tag
 TAG ?= develop
 
-ifdef CI
-TAG = latest
-endif
-
 IMAGE = $(IMAGE_NAME):$(TAG)
 
 COMPOSE ?= docker compose
