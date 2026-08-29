@@ -55,11 +55,11 @@ jobs:
             --password-stdin
 
       - name: Build image
-        run: make docker-build
+        run: make docker-build TAG=${{ github.sha }}
 
       - name: Push image
         if: github.ref == 'refs/heads/main'
-        run: make docker-push
+        run: make docker-push TAG=${{ github.sha }}
 
       - name: Cleanup docker artifacts
         if: always()
