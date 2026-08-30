@@ -55,7 +55,9 @@ jobs:
             --password-stdin
 
       - name: Build image
-        run: make docker-build TAG=${{ github.sha }}
+        run: make docker-build TAG=${{ github.sha }} \
+          NEXT_PUBLIC_AUTH_API_URL=https://auth.dev.shelful.club \
+          NEXT_PUBLIC_SHELF_API_URL=https://api.dev.shelful.club
 
       - name: Push image
         if: github.ref == 'refs/heads/main'
