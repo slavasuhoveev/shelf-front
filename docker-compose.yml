@@ -72,15 +72,11 @@ services:
       context: .
       target: runtime
       args:
-        NEXT_PUBLIC_AUTH_API_URL: http://localhost:8081
-        NEXT_PUBLIC_SHELF_API_URL: http://localhost:8082
+        NEXT_PUBLIC_AUTH_API_URL: ${NEXT_PUBLIC_AUTH_API_URL}
+        NEXT_PUBLIC_SHELF_API_URL: ${NEXT_PUBLIC_SHELF_API_URL}
 
     ports:
       - "3000:3000"
-
-    environment:
-      NEXT_PUBLIC_AUTH_API_URL: http://localhost:8081
-      NEXT_PUBLIC_SHELF_API_URL: http://localhost:8082
 
     depends_on:
       shelf-auth:
@@ -104,12 +100,8 @@ services:
       context: .
       target: test
       args:
-        NEXT_PUBLIC_AUTH_API_URL: http://localhost:8081
-        NEXT_PUBLIC_SHELF_API_URL: http://localhost:8082
-
-    environment:
-      NEXT_PUBLIC_AUTH_API_URL: http://localhost:8081
-      NEXT_PUBLIC_SHELF_API_URL: http://localhost:8082
+        NEXT_PUBLIC_AUTH_API_URL: ${NEXT_PUBLIC_AUTH_API_URL}
+        NEXT_PUBLIC_SHELF_API_URL: ${NEXT_PUBLIC_SHELF_API_URL}
 
     profiles:
       - tools

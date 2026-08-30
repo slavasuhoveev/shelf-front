@@ -12,8 +12,8 @@ PROJECT_NAME ?= shelf-front
 TEST_SERVICE ?= shelf-front-test
 
 IMAGE_NAME ?= $(REGISTRY)/slavasuhoveev/$(PROJECT_NAME)
-AUTH_IMAGE ?= $(REGISTRY)/slavasuhoveev/shelf-auth:latest
-SHELF_API_IMAGE ?= $(REGISTRY)/slavasuhoveev/shelf-api:latest
+AUTH_IMAGE ?= $(REGISTRY)/slavasuhoveev/shelf-auth:develop
+SHELF_API_IMAGE ?= $(REGISTRY)/slavasuhoveev/shelf-api:develop
 
 # Development keys
 KEYS_DIR ?= ./devkeys
@@ -21,6 +21,11 @@ SIGNING_KEY_KID ?= k1-2025-08-30
 
 # Default local tag
 TAG ?= develop
+
+# Frontend public URLs.
+# CI can override these values for dev/prod builds.
+NEXT_PUBLIC_AUTH_API_URL ?= http://localhost:8081
+NEXT_PUBLIC_SHELF_API_URL ?= http://localhost:8082
 
 IMAGE = $(IMAGE_NAME):$(TAG)
 
